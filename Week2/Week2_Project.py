@@ -36,7 +36,7 @@ if __name__  == "__main__":
     # Sets image saturation to maximum
     mask[..., 1] = 255
     
-    p0 = cv2.goodFeaturesToTrack(prev_gray_frame, mask=None, maxCorners=100, qualityLevel=0.3,
+    p0 = cv2.goodFeaturesToTrack(prev_gray_frame, mask=None, maxCorners=30, qualityLevel=0.1,
                              minDistance=7, blockSize=7)
     
     
@@ -49,8 +49,9 @@ if __name__  == "__main__":
         next_gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame_cpy = frame.copy()
         
-        if ret is True:
-            
+        if not ret:
+            break;
+        else:
             gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
             
             # Sparse optical Flow
@@ -58,9 +59,7 @@ if __name__  == "__main__":
             # Select only the keypoints that have moved
             good_new = p1[st==1]
             good_old = p0[st==1]
-            #feat1 = cv2.goodFeaturesToTrack(prev_gray_frame,maxCorners=10000,qualityLevel=0.2,minDistance=10)
-            #feat2 , status, error = cv2.calcOpticalFlowPyrLK(prev_gray_frame,gray_frame,feat1,None)
-            
+           
             # Draw the keypoints that have moved on the mask
             for i, (new, old) in enumerate(zip(good_new, good_old)):
                 a, b = new.ravel().astype(int)
@@ -70,7 +69,6 @@ if __name__  == "__main__":
                 mask_sparse = cv2.circle(mask_sparse,(a,b), 5, (0,255,0), -1)
             
             bgr_sparse_frame = cv2.add(frame_cpy, mask_sparse)
-            
             
             
             # Dense Optical Flow
@@ -85,16 +83,6 @@ if __name__  == "__main__":
             
             prev_gray_frame = gray_frame
             
-            # for i in range(len(feat1)):
-            #     f10=int(feat1[i][0][0])
-            #     f11=int(feat1[i][0][1])
-            #     f20=int(feat2[i][0][0]) 
-            #     f21=int(feat2[i][0][1])
-            
-            # #print(f10,f20,f11,f21)
-            # if not isclose(f10,f20,abs_tol=0.8) or not isclose(f11,f21,abs_tol=0.8):
-            #     cv2.line(frame, (f10,f11), (f20, f21), (0, 255, 0), 2)
-            #     cv2.circle(frame, (f10, f11), 5, (0, 255, 0), -1)
 
             cv2.imshow('Sparse Optical Flow', bgr_sparse_frame)
             cv2.imshow('Dense Optical Flow',bgr_dense_frame)
@@ -111,8 +99,6 @@ if __name__  == "__main__":
             
             p0 = good_new.reshape(-1, 1, 2)
             
-        else:
-            break
     
     cap.release()
     cv2.destroyAllWindows()
